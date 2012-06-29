@@ -11,10 +11,22 @@ from allauth.socialaccount.providers.oauth2.views import (OAuth2Adapter,
                                                           OAuth2CallbackView)
 from allauth.socialaccount import requests
 
+from facebook import GraphAPI, GraphAPIError, get_user_from_cookie
+
 from forms import FacebookConnectForm
 from provider import FacebookProvider
 
 from allauth.utils import valid_email_or_none
+
+def fb_get_token_from_request(request, app, extend=False):
+    # TODO: Split this function so it doesn't autoretrieve the token
+    fbcred = get_user_from_cookie(request.COOKIES, app.key, app.secret)
+    token = fbcred['access_token']
+    if extend:
+        g = GraphAPI(token)
+        ex = g.extend_access_token(app.key, app.secret)
+        token = ex['access_token']
+    return SocialToken(app=app, token=token)
 
 def fb_complete_login(app, token):
     resp = requests.get('https://graph.facebook.com/me',
@@ -57,9 +69,7 @@ def login_by_token(request):
             try:
                 app = providers.registry.by_id(FacebookProvider.id) \
                     .get_app(request)
-                access_token = form.cleaned_data['access_token']
-                token = SocialToken(app=app,
-                                    token=access_token)
+                token = fb_get_token_from_request(request, app, extend=True)
                 login = fb_complete_login(app, token)
                 login.token = token
                 login.state = SocialLogin.state_from_request(request)
