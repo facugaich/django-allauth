@@ -13,7 +13,6 @@ from allauth.socialaccount import requests
 
 from facebook import GraphAPI, GraphAPIError, get_user_from_cookie
 
-from forms import FacebookConnectForm
 from provider import FacebookProvider
 
 from allauth.utils import valid_email_or_none
@@ -64,19 +63,17 @@ oauth2_callback = OAuth2CallbackView.adapter_view(FacebookOAuth2Adapter)
 def login_by_token(request):
     ret = None
     if request.method == 'POST':
-        form = FacebookConnectForm(request.POST)
-        if form.is_valid():
-            try:
-                app = providers.registry.by_id(FacebookProvider.id) \
-                    .get_app(request)
-                token = fb_get_token_from_request(request, app, extend=True)
-                login = fb_complete_login(app, token)
-                login.token = token
-                login.state = SocialLogin.state_from_request(request)
-                ret = complete_social_login(request, login)
-            except:
-                # FIXME: Catch only what is needed
-                pass
+        try:
+            app = providers.registry.by_id(FacebookProvider.id) \
+                .get_app(request)
+            token = fb_get_token_from_request(request, app, extend=True)
+            login = fb_complete_login(app, token)
+            login.token = token
+            login.state = SocialLogin.state_from_request(request)
+            ret = complete_social_login(request, login)
+        except:
+            # FIXME: Catch only what is needed
+            pass
     if not ret:
         ret = render_authentication_error(request)
     return ret
