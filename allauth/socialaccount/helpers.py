@@ -84,6 +84,10 @@ def render_authentication_error(request, extra_context={}):
 def complete_social_login(request, sociallogin):
     assert not sociallogin.is_existing
     sociallogin.lookup()
+
+    request.POST = request.POST.copy()
+    request.POST.update(sociallogin.state)
+
     if request.user.is_authenticated():
         if sociallogin.is_existing:
             # Existing social account, existing user

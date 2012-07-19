@@ -10,6 +10,9 @@ from allauth.utils import get_login_redirect_url
 import providers
 from fields import JSONField
 
+import TQSweb.socialfrontend.utils
+from gripe.models import Gripe
+
 
 class SocialAppManager(models.Manager):
     def get_current(self, provider):
@@ -133,6 +136,19 @@ class SocialLogin(object):
             self.token.account = self.account
             self.token.save()
 
+        # Esto sirve para twitter nomas
+#        if 'action' in self.state and 'gripe' in self.state:
+#            try:
+#                gripe_id = int(self.state['gripe'])
+#                gripe = Gripe.objects.get(pk=gripe_id)
+#                TQSweb.socialfrontend.utils.action_after_signup(user,
+#                                                self.state['action'], gripe)
+#            except (ValueError, Gripe.DoesNotExist):
+#                pass
+
+        TQSweb.socialfrontend.utils.add_social_friends(user)
+        TQSweb.socialfrontend.utils.fill_profile_from_social(user)
+
     @property
     def is_existing(self):
         """
@@ -179,6 +195,9 @@ class SocialLogin(object):
         next = get_login_redirect_url(request, fallback=None)
         if next:
             state['next'] = next
+        if 'action' in request.POST and 'gripe' in request.POST:
+            state['action'] = request.POST['action']
+            state['gripe'] = request.POST['gripe']
         return state
 
     @classmethod
