@@ -11,7 +11,6 @@ import providers
 from fields import JSONField
 
 import TQSweb.socialfrontend.utils
-from gripe.models import Gripe
 
 
 class SocialAppManager(models.Manager):
