@@ -119,7 +119,7 @@ def send_email_confirmation(user, request=None):
     """
     COOLDOWN_PERIOD = timedelta(minutes=3)
     email = user.email
-    if email:
+    if email and app_settings.EMAIL_VERIFICATION:
         try:
             email_address = EmailAddress.objects.get(user=user,
                                                      email__iexact=email)
